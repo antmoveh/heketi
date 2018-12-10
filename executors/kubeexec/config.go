@@ -15,7 +15,8 @@ import (
 
 type KubeConfig struct {
 	cmdexec.CmdConfig
-
+	Host             string `json:"host"`
+	Insecure         bool   `json:"insecure"`
 	Namespace        string `json:"namespace"`
 	GlusterDaemonSet bool   `json:"gluster_daemonset"`
 
