@@ -47,8 +47,13 @@ type KubeExecutor struct {
 
 var (
 	logger          = utils.NewLogger("[kubeexec]", utils.LEVEL_DEBUG)
-	inClusterConfig = func() (*restclient.Config, error) {
-		return restclient.InClusterConfig()
+	inClusterConfig = func(c *KubeConfig) (*restclient.Config, error) {
+		if c.Host == "" {
+			return restclient.InClusterConfig()
+		} else {
+			logger.Info("Kubernetes configuration object has been initialized with insecure communication channel.")
+			return &restclient.Config{Host: c.Host}, nil
+		}
 	}
 )
 
@@ -129,7 +134,7 @@ func NewKubeExecutor(config *KubeConfig) (*KubeExecutor, error) {
 	k.namespace = k.config.Namespace
 
 	// Create a Kube client configuration
-	k.kubeConfig, err = inClusterConfig()
+	k.kubeConfig, err = inClusterConfig(config)
 	if err != nil {
 		return nil, logger.LogError("Unable to create configuration for Kubernetes: %v", err)
 	}

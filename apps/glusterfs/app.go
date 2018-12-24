@@ -54,6 +54,7 @@ var (
 	// avoids having to update config files to enable the feature
 	// while avoiding having to touch all of the unit tests.
 	MonitorGlusterNodes = false
+	globalDB            *bolt.DB
 )
 
 type App struct {
@@ -161,6 +162,8 @@ func NewApp(conf *GlusterFSConfig) *App {
 			return nil
 		}
 	}
+	//globally set db instance.
+	globalDB = app.db
 
 	// Abort the application if there are pending operations in the db.
 	// In the immediate future we need to prevent incomplete operations

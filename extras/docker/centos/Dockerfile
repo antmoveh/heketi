@@ -6,12 +6,15 @@ LABEL description="Heketi based on the packages from the CentOS Storage SIG"
 
 # install dependencies, build and cleanup
 RUN yum -y install centos-release-gluster && \
-    yum -y install heketi heketi-client && \
     yum -y clean all
 
 # post install config and volume setup
+ADD heketi /usr/bin/heketi
 ADD heketi.json /etc/heketi/heketi.json
 ADD heketi-start.sh /usr/bin/heketi-start.sh
+
+
+RUN chmod +x /usr/bin/heketi
 
 VOLUME /etc/heketi
 VOLUME /var/lib/heketi

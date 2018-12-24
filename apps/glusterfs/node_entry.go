@@ -280,8 +280,7 @@ func (n *NodeEntry) Delete(tx *bolt.Tx) error {
 	return EntryDelete(tx, n, n.Info.Id)
 }
 
-func (n *NodeEntry) SetState(db wdb.DB, e executors.Executor,
-	s api.EntryState) error {
+func (n *NodeEntry) SetState(db wdb.DB, e executors.Executor, s api.EntryState) error {
 
 	// Check current state
 	switch n.State {

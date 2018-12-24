@@ -10,6 +10,7 @@
 package glusterfs
 
 import (
+	"github.com/heketi/heketi/pkg/glusterfs/api"
 	"strings"
 	"sync"
 	"time"
@@ -89,6 +90,78 @@ func (hc *NodeHealthCache) updateNode(s *NodeHealthStatus) {
 		hc.nodes[s.NodeId] = s
 	}
 	s.update(hc.exec)
+	//change targeted glusterfs node status to offline.
+	if !s.Up {
+		hc.db.View(func(tx *bolt.Tx) error {
+			node, err := NewNodeEntryFromId(tx, s.NodeId)
+			if err != nil {
+				logger.LogError("Failed to retrieve node entry from DB. #error: %s", err.Error())
+				//ignored internal error.
+				return nil
+			}
+			if node.State == api.EntryStateOffline {
+				//nothing changed.
+				return nil
+			}
+			logger.Warning("SET *OFFLINE* unresponsive node: %s(%s)", s.NodeId, s.Host)
+			//set node status.
+			err = node.SetState(globalDB, hc.exec, api.EntryStateOffline)
+			if err != nil {
+				logger.LogError("Failed to offline specified glusterfs node: %s(%s), error: %s", s.NodeId, s.Host, err.Error())
+			}
+			//set device status.
+			if node.Devices != nil && len(node.Devices) > 0 {
+				for i := 0; i < len(node.Devices); i++ {
+					device, err := NewDeviceEntryFromId(tx, node.Devices[i])
+					if err != nil {
+						logger.LogError("Failed to retrieve device entry from DB. #error: %s", err.Error())
+						continue
+					}
+					err = device.SetState(globalDB, hc.exec, api.EntryStateOffline)
+					if err != nil {
+						logger.LogError("Failed to offline specified glusterfs node's device: %s(%s)/%s, error: %s", s.NodeId, s.Host, node.Devices[i], err.Error())
+					}
+				}
+			}
+			//ignored internal error.
+			return nil
+		})
+	}
+	if s.Up {
+		hc.db.View(func(tx *bolt.Tx) error {
+			node, err := NewNodeEntryFromId(tx, s.NodeId)
+			if err != nil {
+				logger.LogError("Failed to retrieve node entry from DB. #error: %s", err.Error())
+				//ignored internal error.
+				return nil
+			}
+			if node.State == api.EntryStateOnline {
+				//nothing changed.
+				return nil
+			}
+			logger.Warning("SET *ONLINE* node: %s(%s)", s.NodeId, s.Host)
+			err = node.SetState(globalDB, hc.exec, api.EntryStateOnline)
+			if err != nil {
+				logger.LogError("Failed to online specified glusterfs node: %s(%s), error: %s", s.NodeId, s.Host, err.Error())
+			}
+			//set device status.
+			if node.Devices != nil && len(node.Devices) > 0 {
+				for i := 0; i < len(node.Devices); i++ {
+					device, err := NewDeviceEntryFromId(tx, node.Devices[i])
+					if err != nil {
+						logger.LogError("Failed to retrieve device entry from DB. #error: %s", err.Error())
+						continue
+					}
+					err = device.SetState(globalDB, hc.exec, api.EntryStateOnline)
+					if err != nil {
+						logger.LogError("Failed to online specified glusterfs node's device: %s(%s)/%s, error: %s", s.NodeId, s.Host, node.Devices[i], err.Error())
+					}
+				}
+			}
+			//ignored internal error.
+			return nil
+		})
+	}
 }
 
 func (hc *NodeHealthCache) cleanOld() {
@@ -155,9 +228,9 @@ func (hc *NodeHealthCache) toProbe() ([]*NodeHealthStatus, error) {
 				return err
 			}
 			// Ignore if the node is not online
-			if !node.isOnline() {
-				continue
-			}
+			//if !node.isOnline() {
+			//	continue
+			//}
 			nhs := &NodeHealthStatus{
 				NodeId: nodeId,
 				Host:   node.Info.Hostnames.Manage[0],
@@ -174,8 +247,7 @@ func (s *NodeHealthStatus) update(e executors.Executor) {
 	err := e.GlusterdCheck(s.Host)
 	s.Up = (err == nil)
 	s.LastUpdate = healthNow()
-	logger.Info("Periodic health check status: node %v up=%v",
-		s.NodeId, s.Up)
+	logger.Info("Periodic health check status: node %v up=%v", s.NodeId, s.Up)
 }
 
 func (s *NodeHealthStatus) old(hc *NodeHealthCache) bool {
