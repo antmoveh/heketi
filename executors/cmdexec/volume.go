@@ -280,6 +280,36 @@ func (s *CmdExecutor) VolumeInfo(host string, volume string) (*executors.Volume,
 	return &volumeInfo.VolInfo.Volumes.VolumeList[0], nil
 }
 
+func (s *CmdExecutor) BrickInfo(host string, volume, brick string) (*executors.BrickDetailInfo, error) {
+	godbc.Require(volume != "")
+	godbc.Require(brick != "")
+	godbc.Require(host != "")
+
+	type CliOutput struct {
+		OpRet    int                       `xml:"opRet"`
+		OpErrno  int                       `xml:"opErrno"`
+		OpErrStr string                    `xml:"opErrstr"`
+		VolInfo  executors.BrickDetailInfo `xml:"volStatus"`
+	}
+
+	command := []string{
+		fmt.Sprintf("gluster --mode=script volume status %v %v detail --xml", volume, brick),
+	}
+
+	//Get the xml output of volume info
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get volume info of volume name: %v", volume)
+	}
+	var cliOut CliOutput
+	err = xml.Unmarshal([]byte(output[0]), &cliOut)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to determine volume info of volume name: %v", volume)
+	}
+	logger.Debug("%+v\n", cliOut)
+	return &cliOut.VolInfo, nil
+}
+
 func (s *CmdExecutor) VolumeReplaceBrick(host string, volume string, oldBrick *executors.BrickInfo, newBrick *executors.BrickInfo) error {
 	godbc.Require(volume != "")
 	godbc.Require(host != "")

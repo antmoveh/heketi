@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
@@ -74,6 +75,8 @@ type App struct {
 	// For testing only.  Keep access to the object
 	// not through the interface
 	xo *mockexec.MockExecutor
+	//bricks data usage monitor.
+	usageRefresher *BricksUsageRefresher
 }
 
 // Use for tests only
@@ -209,6 +212,14 @@ func NewApp(conf *GlusterFSConfig) *App {
 		app.nhealth.Monitor()
 		currentNodeHealthCache = app.nhealth
 	}
+	//asynchronously refresh each of brick's data usage.
+	app.usageRefresher = &BricksUsageRefresher{
+		Interval: time.Second * time.Duration(timer),
+		db:       app.db,
+		exec:     app.executor,
+		stop:     make(chan interface{}),
+	}
+	go app.usageRefresher.Start()
 
 	// set up the operations counter
 	oplimit := app.conf.MaxInflightOperations

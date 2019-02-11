@@ -162,8 +162,9 @@ func NewVolumeEntryFromRequest(req *api.VolumeCreateRequest) *VolumeEntry {
 
 func NewVolumeEntryFromId(tx *bolt.Tx, id string) (*VolumeEntry, error) {
 	godbc.Require(tx != nil)
-
+	//init an empty VolumeEntry object with specified type of bucket.
 	entry := NewVolumeEntry()
+	//entirely reads volume information from database.
 	err := EntryLoad(tx, entry, id)
 	if err != nil {
 		return nil, err

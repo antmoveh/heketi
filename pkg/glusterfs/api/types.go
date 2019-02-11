@@ -146,6 +146,15 @@ type BrickInfo struct {
 	NodeId   string `json:"node"`
 	VolumeId string `json:"volume"`
 
+	//newly supported fields.
+	SizeTotal   uint64 `json:"size_total"` /*Size in KB*/
+	SizeFree    uint64 `json:"size_free"`  /*Size in KB*/
+	BlockSize   uint64 `json:"block_size"`
+	INodesTotal uint64 `json:"inodes_total"`
+	INodesFree  uint64 `json:"inodes_free"`
+	Status      int    `json:"status"`
+	Host        string `json:"host"`
+
 	// Size in KB
 	Size uint64 `json:"size"`
 }

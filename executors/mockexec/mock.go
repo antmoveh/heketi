@@ -21,6 +21,7 @@ type MockExecutor struct {
 	MockDeviceSetup              func(host, device, vgid string, destroy bool) (*executors.DeviceInfo, error)
 	MockDeviceTeardown           func(host, device, vgid string) error
 	MockGetDeviceInfo            func(host, device, vgid string) (*executors.DeviceInfo, error)
+	MockBrickInfo                func(host string, volume, brick string) (*executors.BrickDetailInfo, error)
 	MockBrickCreate              func(host string, brick *executors.BrickRequest) (*executors.BrickInfo, error)
 	MockBrickDestroy             func(host string, brick *executors.BrickRequest) (bool, error)
 	MockVolumeCreate             func(host string, volume *executors.VolumeRequest) (*executors.Volume, error)
@@ -81,6 +82,10 @@ func NewMockExecutor() (*MockExecutor, error) {
 			Path: "/mockpath",
 		}
 		return b, nil
+	}
+
+	m.MockBrickInfo = func(host string, volume, brick string) (*executors.BrickDetailInfo, error) {
+		return nil, nil
 	}
 
 	m.MockBrickDestroy = func(host string, brick *executors.BrickRequest) (bool, error) {
@@ -227,6 +232,10 @@ func (m *MockExecutor) BrickCreate(host string, brick *executors.BrickRequest) (
 
 func (m *MockExecutor) BrickDestroy(host string, brick *executors.BrickRequest) (bool, error) {
 	return m.MockBrickDestroy(host, brick)
+}
+
+func (m *MockExecutor) BrickInfo(host string, volume, brick string) (*executors.BrickDetailInfo, error) {
+	return m.MockBrickInfo(host, volume, brick)
 }
 
 func (m *MockExecutor) VolumeCreate(host string, volume *executors.VolumeRequest) (*executors.Volume, error) {

@@ -100,19 +100,19 @@ func UpgradeDB(tx *bolt.Tx) error {
 		return err
 	}
 
-	err = NodeEntryUpgrade(tx)
+	err = NodeEntryUpgrade(tx) /*DO NOTHING*/
 	if err != nil {
 		logger.LogError("Failed to upgrade db for node entries")
 		return err
 	}
 
-	err = VolumeEntryUpgrade(tx)
+	err = VolumeEntryUpgrade(tx) /*DO NOTHING*/
 	if err != nil {
 		logger.LogError("Failed to upgrade db for volume entries")
 		return err
 	}
 
-	err = DeviceEntryUpgrade(tx)
+	err = DeviceEntryUpgrade(tx) /*DO NOTHING*/
 	if err != nil {
 		logger.LogError("Failed to upgrade db for device entries")
 		return err

@@ -20,6 +20,7 @@ type Executor interface {
 	DeviceTeardown(host, device, vgid string) error
 	BrickCreate(host string, brick *BrickRequest) (*BrickInfo, error)
 	BrickDestroy(host string, brick *BrickRequest) (bool, error)
+	BrickInfo(host string, volume, brick string) (*BrickDetailInfo, error)
 	VolumeCreate(host string, volume *VolumeRequest) (*Volume, error)
 	VolumeDestroy(host string, volume string) error
 	VolumeDestroyCheck(host, volume string) error
@@ -218,6 +219,37 @@ type Volumes struct {
 type VolInfo struct {
 	XMLName xml.Name `xml:"volInfo"`
 	Volumes Volumes  `xml:"volumes"`
+}
+
+type BrickDetailInfo struct {
+	Volumes BrickVolumesInfo `xml:"volumes"`
+}
+
+type BrickVolumesInfo struct {
+	Volumes BrickVolInfo `xml:"volume"`
+}
+
+type BrickVolInfo struct {
+	VolName    string         `xml:"volName"`
+	NodeCount  int            `xml:"nodeCount"`
+	DetailInfo NodeDetailInfo `xml:"node"`
+}
+
+type NodeDetailInfo struct {
+	Hostname    string `xml:"hostname"`
+	Path        string `xml:"path"`
+	PeerId      string `xml:"peerid"`
+	Status      int    `xml:"status"`
+	Port        int    `xml:"port"`
+	Pid         int    `xml:"pid"`
+	SizeTotal   uint64 `xml:"sizeTotal"`
+	SizeFree    uint64 `xml:"sizeFree"`
+	Device      string `xml:"device"`
+	BlockSize   uint64 `xml:"blockSize"`
+	FSName      string `xml:"fsName"`
+	INodeSize   string `xml:"inodeSize"`
+	INodesTotal uint64 `xml:"inodesTotal"`
+	INodesFree  uint64 `xml:"inodesFree"`
 }
 
 type HealInfoBricks struct {

@@ -10,7 +10,9 @@
 package glusterfs
 
 import (
+	"fmt"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
+	"github.com/lpabon/godbc"
 	"strings"
 	"sync"
 	"time"
@@ -45,6 +47,91 @@ type NodeHealthCache struct {
 
 	// to stop the monitor
 	stop chan<- interface{}
+}
+
+type BricksUsageRefresher struct {
+	// tunables
+	Interval time.Duration
+
+	db   wdb.RODB
+	exec executors.Executor
+	lock sync.RWMutex
+
+	// to stop the monitor
+	stop chan interface{}
+}
+
+func (br *BricksUsageRefresher) Start() {
+	for {
+		select {
+		case _, isOpen := <-br.stop:
+			if !isOpen {
+				return
+			}
+		default:
+			br.fresh()
+			time.Sleep(br.Interval)
+		}
+
+	}
+}
+
+func (br *BricksUsageRefresher) fresh() {
+	err := globalDB.Update(func(tx *bolt.Tx) error {
+		brickList, internalErr := BrickList(tx)
+		if internalErr != nil {
+			return internalErr
+		}
+		if brickList == nil || len(brickList) == 0 {
+			return nil
+		}
+		for i := 0; i < len(brickList); i++ {
+			be, internalErr := NewBrickEntryFromId(tx, brickList[i])
+			if internalErr != nil {
+				_ = logger.LogError("Failed to load brick(%s) information from DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+			node, internalErr := NewNodeEntryFromId(tx, be.Info.NodeId)
+			if internalErr != nil {
+				_ = logger.LogError("Failed to load brick(%s) information from DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+			host := node.ManageHostName()
+			godbc.Check(host != "")
+			//save brick's host at first even though error occurs.
+			be.Host = host
+			internalErr = be.Save(tx)
+			if internalErr != nil {
+				_ = logger.LogError("Failed to save brick(%s) information to DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+			v, internalErr := NewVolumeEntryFromId(tx, be.Info.VolumeId)
+			if internalErr != nil {
+				_ = logger.LogError("Failed to load brick(%s) information from DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+			bi, internalErr := br.exec.BrickInfo(host, v.Info.Name, fmt.Sprintf("%s:%s", host, be.Info.Path))
+			if internalErr != nil {
+				_ = logger.LogError("Failed to load brick(%s) information from DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+			be.SizeTotal = bi.Volumes.Volumes.DetailInfo.SizeTotal
+			be.SizeFree = bi.Volumes.Volumes.DetailInfo.SizeFree
+			be.BlockSize = bi.Volumes.Volumes.DetailInfo.BlockSize
+			be.INodesTotal = bi.Volumes.Volumes.DetailInfo.INodesTotal
+			be.INodesFree = bi.Volumes.Volumes.DetailInfo.INodesFree
+			be.Status = bi.Volumes.Volumes.DetailInfo.Status
+			internalErr = be.Save(tx)
+			if internalErr != nil {
+				_ = logger.LogError("Failed to load brick(%s) information from DB. #error: %s", brickList[i], internalErr.Error())
+				continue
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		_ = logger.LogError("Failed to retrieve any information from DB. #error: %s", err.Error())
+	}
 }
 
 func NewNodeHealthCache(reftime, starttime uint32, db wdb.RODB, e executors.Executor) *NodeHealthCache {

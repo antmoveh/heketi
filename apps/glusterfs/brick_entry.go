@@ -26,8 +26,9 @@ type BrickEntry struct {
 	Info             api.BrickInfo
 	TpSize           uint64
 	PoolMetadataSize uint64
-	gidRequested     int64
-	Pending          PendingItem
+
+	gidRequested int64
+	Pending      PendingItem
 
 	// the following is used when tracking the
 	// bricks in cloned volumes. They follow a different
@@ -38,6 +39,15 @@ type BrickEntry struct {
 	// currently sub type is only used when the brick is first created
 	// this is only exported for placer use and db serialization
 	SubType BrickSubType
+
+	//newly supported fields.
+	SizeTotal   uint64
+	SizeFree    uint64
+	BlockSize   uint64
+	INodesTotal uint64
+	INodesFree  uint64
+	Status      int
+	Host        string
 }
 
 func BrickList(tx *bolt.Tx) ([]string, error) {
@@ -138,6 +148,13 @@ func (b *BrickEntry) Delete(tx *bolt.Tx) error {
 func (b *BrickEntry) NewInfoResponse(tx *bolt.Tx) (*api.BrickInfo, error) {
 	info := &api.BrickInfo{}
 	*info = b.Info
+	info.SizeFree = b.SizeFree / 1024
+	info.SizeTotal = b.SizeTotal / 1024
+	info.INodesFree = b.INodesFree
+	info.INodesTotal = b.INodesTotal
+	info.BlockSize = b.BlockSize
+	info.Status = b.Status
+	info.Host = b.Host
 
 	return info, nil
 }
