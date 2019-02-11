@@ -40,3 +40,92 @@ Please visit [Vagrant-Heketi](https://github.com/heketi/vagrant-heketi) to try o
 
 [![image](https://img.youtube.com/vi/jpkG4wciy4U/3.jpg)](https://www.youtube.com/watch?v=jpkG4wciy4U) [Slides](https://github.com/lpabon/go-slides)
 
+# Updates
+
+Please fetch branch `releses/8` for new supported features.
+- Supported more fields to Brick for returning data usage in "volume info" API.
+```shell
+#HTTP REQUEST
+curl -v http://127.0.0.1:8090/volumes/d56209edae84fda92500644532c20fb5
+
+#HTTP RESPONSE
+{
+    "size": 2,
+    "name": "vol_d56209edae84fda92500644532c20fb5",
+    "durability": {
+        "type": "replicate",
+        "replicate": {
+            "replica": 3
+        },
+        "disperse": {}
+    },
+    "snapshot": {
+        "enable": false,
+        "factor": 1
+    },
+    "id": "d56209edae84fda92500644532c20fb5",
+    "cluster": "693d0f20edf4b10e789670ed11f8e702",
+    "mount": {
+        "glusterfs": {
+            "hosts": [
+                "10.203.40.99",
+                "10.203.40.98",
+                "10.203.40.97"
+            ],
+            "device": "10.203.40.99:vol_d56209edae84fda92500644532c20fb5",
+            "options": {
+                "backup-volfile-servers": "10.203.40.98,10.203.40.97"
+            }
+        }
+    },
+    "blockinfo": {},
+    "bricks": [
+        {
+            "id": "7588e89959eb1f94bb696f7e3c5b73f7",
+            "path": "/var/lib/heketi/mounts/vg_0adfc528cc4f9383cb0e7b3a672593b8/brick_7588e89959eb1f94bb696f7e3c5b73f7/brick",
+            "device": "0adfc528cc4f9383cb0e7b3a672593b8",
+            "node": "a239f268c58362d9ff3205f8b1de24b6",
+            "volume": "d56209edae84fda92500644532c20fb5",
+            "size_total": 2086912,      #new supported field
+            "size_free": 1783008,       #new supported field
+            "block_size": 4096,         #new supported field
+            "inodes_total": 1048576,    #new supported field
+            "inodes_free": 1048530,
+            "status": 1,                #new supported field
+            "host": "10.203.40.98",     #new supported field
+            "size": 2097152
+        },
+        {
+            "id": "bd8ffbab86122403cdcf9a2ca8e79a25",
+            "path": "/var/lib/heketi/mounts/vg_d2b815bfb723ee885817f021c7f33f26/brick_bd8ffbab86122403cdcf9a2ca8e79a25/brick",
+            "device": "d2b815bfb723ee885817f021c7f33f26",
+            "node": "ee216dc39e70dbefffa454b090312ef8",
+            "volume": "d56209edae84fda92500644532c20fb5",
+            "size_total": 2086912,
+            "size_free": 1783008,
+            "block_size": 4096,
+            "inodes_total": 1048576,
+            "inodes_free": 1048530,
+            "status": 1,
+            "host": "10.203.40.97",
+            "size": 2097152
+        },
+        {
+            "id": "eec203b041262332ab604a036d705e01",
+            "path": "/var/lib/heketi/mounts/vg_3e43e405ef3036799af859311bbbd1ed/brick_eec203b041262332ab604a036d705e01/brick",
+            "device": "3e43e405ef3036799af859311bbbd1ed",
+            "node": "3e6ea6254c1ec329e0dde5f46a4f0b3a",
+            "volume": "d56209edae84fda92500644532c20fb5",
+            "size_total": 0,
+            "size_free": 0,
+            "block_size": 0,
+            "inodes_total": 0,
+            "inodes_free": 0,
+            "status": 0,
+            "host": "10.203.40.99",
+            "size": 2097152
+        }
+    ]
+}
+```
+
