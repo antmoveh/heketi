@@ -34,8 +34,6 @@ heketi.db
 heketi-ci-docker.img
 
 # Generated files
-heketi
-heketi-cli
 dist
 
 # Other
