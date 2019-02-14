@@ -41,7 +41,6 @@ dist
 # Other
 cscope.*
 tags
-log
 *.sw?
 *~
 .vscode
@@ -51,5 +50,4 @@ coverage
 packagecover.out
 .coverage
 .tox
-*.log
 .envrc
