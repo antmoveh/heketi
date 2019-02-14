@@ -1,28 +1,41 @@
 language: go
-sudo: true
-before_install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq python python-pip
-    - sudo pip install tox nose
-install:
-- bash .travis-fork-fix
-- go get github.com/mattn/goveralls
-- go get github.com/wadey/gocovmerge
-- curl https://glide.sh/get | sh
+
+addons:
+  apt:
+    packages:
+      # needed for the nfpm pipe:
+      - rpm
+      # needed for the snap pipe:
+      - snapd
+
 env:
-  global:
-  - secure: tCj+iGIN2GM5yPneme35KIQwqGcXMOLod00qvG/Af0lkjEVJRRNz3gnB3P2dNyj9Nc4FWxSUIjCiIkblOMaEKxPXp1S3Zo7gRBVphyNY5ZvIKeqKoXvBPd6hi9Ft2TaN+4vDczfAKOI/S3/3kN3NmgGCYNTLOues0T4yhVd3v14hoQJxw4Jbjlsj8RGfLrqp+dInFv2tS+xTyK+q/EOiaCpBq4PfK6giKwt943o7jc9v0iWjnP2rWq/AotMo4QutoC0OVeJT8aG41sC5LvlYTBQB22E8Zv439JgHsdhQU1NRd/1VLGKATToxkUxh2Reei42koAWFJ+EfFvAIx03k5+ZYJY7W+Rtuy8jn0uRaZyvvQdUvyT22e9lSJzqkP6JAe7oru9hf9X4K0XSOfMMFUiJDC+rNm0Ajd+r/5h6C+jRqIMDvvFgdlCkM8gKIX1B5N+RM1hxurAGTRpdCPuDVLVeTCbNZCds8jiK1DNky6Ni66plBIV+LKQY3EpjBn0jaWfPdTJbU5OiOb1uadnmzj2yt65Mp3T8QJD3dotURISR8bIS+Xb6vAytKFWmtcqje5Hx4lFTfyrH3gRGjMyeS9j3pVjbbCCV466FHOp9oglpoFv49nXhivPzLqU7mSuLIue+5RZ318HykuBWI+6xAo8aH9nnoBmAWiGCxXwIr13Y=
-git:
-  depth: 9999999
-matrix:
-  include:
-  - go: 1.7.5
-    env: COVERAGE="true"
-  - go: 1.8.2
-    env: COVERAGE="true"
-  - go: 1.9.4
-    env: COVERAGE="true"
-  - go: "1.10"
-    env: COVERAGE="true"
-script:
-- cd extras/docker/fromsource && docker build -t x .
+  # needed for the snap pipe:
+  - PATH=/snap/bin:$PATH
+
+install:
+  # needed for the snap pipe:
+  - sudo snap install snapcraft --classic
+
+# needed for the docker pipe
+services:
+  - docker
+
+after_success:
+  # docker login is required if you want to push docker images.
+  # DOCKER_PASSWORD should be a secret in your .travis.yml configuration.
+  - test -n "$TRAVIS_TAG" && docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  # snapcraft login is required if you want to push snapcraft packages to the
+  # store.
+  # You'll need to run `snapcraft export-login snap.login` and
+  # `travis encrypt-file snap.login --add` to add the key to the travis
+  # environment.
+  - test -n "$TRAVIS_TAG" && snapcraft login --with snap.login
+
+# calls goreleaser
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: curl -sL https://git.io/goreleaser | bash
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME = linux
