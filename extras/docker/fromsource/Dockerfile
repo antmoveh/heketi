@@ -24,7 +24,6 @@ RUN mkdir $BUILD_HOME $GOPATH && \
     make && \
     cp heketi /usr/bin/heketi && \
     cp client/cli/go/heketi-cli /usr/bin/heketi-cli && \
-    glide cc && \
     cd && rm -rf $BUILD_HOME && \
     dnf -y remove git glide golang mercurial && \
     dnf -y autoremove && \
