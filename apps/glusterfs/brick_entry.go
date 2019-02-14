@@ -148,8 +148,8 @@ func (b *BrickEntry) Delete(tx *bolt.Tx) error {
 func (b *BrickEntry) NewInfoResponse(tx *bolt.Tx) (*api.BrickInfo, error) {
 	info := &api.BrickInfo{}
 	*info = b.Info
-	info.SizeFree = b.SizeFree / 1024
-	info.SizeTotal = b.SizeTotal / 1024
+	info.SizeFree = b.SizeFree / 1024 / 1024
+	info.SizeTotal = b.SizeTotal / 1024 / 1024
 	info.INodesFree = b.INodesFree
 	info.INodesTotal = b.INodesTotal
 	info.BlockSize = b.BlockSize
