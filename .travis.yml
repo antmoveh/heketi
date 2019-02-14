@@ -15,7 +15,7 @@ env:
 install:
   - go get github.com/mattn/goveralls
   - go get github.com/wadey/gocovmerge
-  - curl https://glide.sh/get | s
+  - curl https://glide.sh/get | sh
   # needed for the snap pipe:
   - sudo snap install snapcraft --classic
 
