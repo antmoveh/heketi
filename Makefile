@@ -76,12 +76,10 @@ ifndef HGPATH
 	$(info glide needs to fetch pkgs from a mercurial repository.)
 	$(error mercurial/hg is required to continue)
 endif
-	echo "Installing vendor directory"
-	glide install -v
+
 
 glide.lock: glide.yaml
-	echo "Glide.yaml has changed, updating glide.lock"
-	glide update -v
+
 
 client: vendor glide.lock
 	@$(MAKE) -C client/cli/go
