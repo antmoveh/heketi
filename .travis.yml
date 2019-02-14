@@ -25,6 +25,4 @@ matrix:
   - go: "1.10"
     env: COVERAGE="true"
 script:
-- make
-- if [[ -z "$COVERAGE" ]]; then make test TESTOPTIONS=-v ; else make test TESTOPTIONS=-vcstdout && bash .travis-coverage; fi
-- make release
+- cd extras/docker/fromsource && docker build -t x .
