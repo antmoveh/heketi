@@ -2,9 +2,9 @@
 # need to use fedora 27 until glide is fixed in fedora 28
 # (or we get an alternative glide)
 FROM fedora:27
-MAINTAINER Heketi Developers <heketi-devel@gluster.org>
+MAINTAINER Kevin Yang <g0194776@126.com>
 
-LABEL version="1.3.1"
+LABEL version="8.0"
 LABEL description="Development build"
 
 # let's setup all the necessary environment variables
@@ -19,7 +19,7 @@ RUN mkdir $BUILD_HOME $GOPATH && \
     dnf -y clean all && \
     mkdir -p $GOPATH/src/github.com/heketi && \
     cd $GOPATH/src/github.com/heketi && \
-    git clone -b $HEKETI_BRANCH https://github.com/heketi/heketi.git && \
+    git clone -b $HEKETI_BRANCH https://github.com/g0194776/heketi.git && \
     cd $GOPATH/src/github.com/heketi/heketi && \
     glide install -v && \
     make && \
