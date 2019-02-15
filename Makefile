@@ -42,8 +42,6 @@ PACKAGE :=$(DIR)/dist/$(APP_NAME)-$(VERSION).$(GOOS).$(GOARCH).tar.gz
 CLIENT_PACKAGE :=$(DIR)/dist/$(APP_NAME)-client-$(VERSION).$(GOOS).$(GOARCH).tar.gz
 DEPS_TARBALL :=$(DIR)/dist/$(APP_NAME)-deps-$(VERSION).tar.gz
 
-all: server client
-
 # print the version
 version:
 	@echo $(VERSION)
