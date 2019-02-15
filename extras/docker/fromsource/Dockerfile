@@ -21,7 +21,7 @@ RUN mkdir $BUILD_HOME $GOPATH && \
     cd $GOPATH/src/github.com/heketi && \
     git clone -b $HEKETI_BRANCH https://github.com/g0194776/heketi.git && \
     cd $GOPATH/src/github.com/heketi/heketi && \
-    make && \
+    make server client && \
     cp heketi /usr/bin/heketi && \
     cp client/cli/go/heketi-cli /usr/bin/heketi-cli && \
     cd && rm -rf $BUILD_HOME && \
