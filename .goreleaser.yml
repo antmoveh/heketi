@@ -29,3 +29,6 @@ dockers:
     tag_templates:
       - "{{ .Tag }}"
       - latest
+    extra_files:
+      - heketi.json
+      - heketi-start.sh
