@@ -173,3 +173,35 @@ func (s *CmdExecutor) SnapshotDestroy(host string, snapshot string) error {
 
 	return nil
 }
+
+func (s *CmdExecutor) SnapshotRestore(host string, snapshot string) error {
+	godbc.Require(host != "")
+	godbc.Require(snapshot != "")
+	
+	type CliOutput struct {
+		OpRet      int                  `xml:"opRet"`
+		OpErrno    int                  `xml:"opErrno"`
+		OpErrStr   string               `xml:"opErrstr"`
+		SnapRestore executors.SnapRestore `xml:"snapRestore"`
+	}
+	
+	command := []string{
+		fmt.Sprintf("gluster --mode=script --xml snapshot restore %v", snapshot),
+	}
+	
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+	if err != nil {
+		return fmt.Errorf("Unable to restore snapshot %v: %v", snapshot, err)
+	}
+	
+	var snapRestore CliOutput
+	err = xml.Unmarshal([]byte(output[0]), &snapRestore)
+	if err != nil {
+		return fmt.Errorf("Unable to parse output from restore snapshot %v: %v", snapshot, err)
+	}
+	logger.Debug("%+v\n", snapRestore)
+	if snapRestore.OpRet != 0 {
+		return fmt.Errorf("Failed to restore snapshot %v: %v", snapshot, snapRestore.OpErrStr)
+	}
+	return nil
+}

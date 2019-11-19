@@ -11,6 +11,7 @@ package glusterfs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -359,6 +360,9 @@ func (a *App) VolumeClone(w http.ResponseWriter, r *http.Request) {
 		var err error // needed otherwise 'volume' will be nil after View()
 		volume, err = NewVolumeEntryFromId(tx, vol_id)
 		if err == ErrNotFound || !volume.Visible() {
+			if err == nil {
+				err = errors.New(fmt.Sprintf("volume pending id %s", volume.Pending.Id))
+			}
 			// treat an invisible volume like it doesn't exist
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return err

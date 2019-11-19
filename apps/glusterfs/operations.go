@@ -1170,3 +1170,107 @@ func expandSizeFromOp(op *PendingOperationEntry) (sizeGB int, e error) {
 		op.Id)
 	return
 }
+
+
+// 新增快照操作
+
+// SnapshotOperation implements the operation functions used to
+// destroy an existing snapshot.
+type SnapshotDestroyOperation struct {
+	OperationManager
+	noRetriesOperation
+	
+	// The volume to use as source for the clone
+	vol *VolumeEntry
+	snapshotId string
+	host string
+}
+
+func NewSnapshotDestroyOperation(db wdb.DB, snapshotId string, host string) *SnapshotDestroyOperation {
+	
+	return &SnapshotDestroyOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: NewPendingOperationEntry(NEW_ID),
+		},
+		host: host,
+		snapshotId:snapshotId,
+	}
+}
+
+func (vc *SnapshotDestroyOperation) Label() string {
+	return "destroy snapshot"
+}
+
+func (vc *SnapshotDestroyOperation) ResourceUrl() string {
+	return fmt.Sprintf("/snapshot/destroy")
+}
+
+func (vc *SnapshotDestroyOperation) Build() error {
+	return nil
+}
+
+func (vc *SnapshotDestroyOperation) Exec(executor executors.Executor) error {
+	err := executor.SnapshotDestroy(vc.host, vc.snapshotId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (vc *SnapshotDestroyOperation) Rollback(executor executors.Executor) error {
+	return nil
+}
+
+func (vc *SnapshotDestroyOperation) Finalize() error {
+	return nil
+}
+
+// snapshot restore
+type SnapshotRestoreOperation struct {
+	OperationManager
+	noRetriesOperation
+	
+	snapshotId string
+	host string
+}
+
+func NewSnapshotRestoreOperation(db wdb.DB, snapshotId string, host string) *SnapshotRestoreOperation {
+	
+	return &SnapshotRestoreOperation{
+		OperationManager: OperationManager{
+			db: db,
+			op: NewPendingOperationEntry(NEW_ID),
+		},
+		host: host,
+		snapshotId:snapshotId,
+	}
+}
+
+func (vc *SnapshotRestoreOperation) Label() string {
+	return "restore snapshot"
+}
+
+func (vc *SnapshotRestoreOperation) ResourceUrl() string {
+	return fmt.Sprintf("/snapshot/restore")
+}
+
+func (vc *SnapshotRestoreOperation) Build() error {
+	return nil
+}
+
+func (vc *SnapshotRestoreOperation) Exec(executor executors.Executor) error {
+	err := executor.SnapshotRestore(vc.host, vc.snapshotId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (vc *SnapshotRestoreOperation) Rollback(executor executors.Executor) error {
+	return nil
+}
+
+func (vc *SnapshotRestoreOperation) Finalize() error {
+	return nil
+}

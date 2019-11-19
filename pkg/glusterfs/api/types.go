@@ -642,3 +642,9 @@ func (as AdminStatus) Validate() error {
 			validation.Required,
 			validation.In(AdminStateNormal, AdminStateReadOnly, AdminStateLocal)))
 }
+
+// 快照
+type SnapshotRequest struct {
+	VolumeId string `json:"volume_id"`
+	SnapshotId string `json:"snapshot_id"`
+} 

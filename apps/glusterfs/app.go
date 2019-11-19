@@ -564,6 +564,20 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "GET",
 			Pattern:     "/operations",
 			HandlerFunc: a.OperationsInfo},
+			
+		// Operations state on snapshot
+		rest.Route{
+			Name:        "SnapshotDestroy",
+			Method:      "Delete",
+			Pattern:     "/snapshot/destroy",
+			HandlerFunc: a.SnapshotDestroy,
+		},
+		rest.Route{
+			Name:        "SnapshotRestore",
+			Method:      "PUT",
+			Pattern:     "/snapshot/restore",
+			HandlerFunc: a.SnapshotRestore,
+		},
 	}
 
 	// Register all routes from the App

@@ -49,3 +49,4 @@ packagecover.out
 .coverage
 .tox
 .envrc
+.idea/

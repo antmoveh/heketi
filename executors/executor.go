@@ -36,6 +36,7 @@ type Executor interface {
 	SetLogLevel(level string)
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
 	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
+	SnapshotRestore(host string, snapshot string) error
 }
 
 // Enumerate durability types
@@ -289,4 +290,10 @@ type VolumeDoesNotExistErr struct {
 
 func (dne *VolumeDoesNotExistErr) Error() string {
 	return "Volume Does Not Exist: " + dne.Name
+}
+
+// 快照恢复
+type SnapRestore struct {
+	XMLName   xml.Name         `xml:"snapRestore"`
+	Snapshots []SnapshotStatus `xml:"snapshots"`
 }
