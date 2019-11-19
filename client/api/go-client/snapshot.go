@@ -64,7 +64,7 @@ func (c *Client) SnapshotDestroy(request *api.SnapshotRequest) error {
 	
 }
 
-func (c *Client) SnapshotRestore(id string, request *api.SnapshotRequest) error {
+func (c *Client) SnapshotRestore(request *api.SnapshotRequest) error {
 	
 	// Marshal request to JSON
 	buffer, err := json.Marshal(request)
