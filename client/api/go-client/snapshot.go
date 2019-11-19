@@ -21,7 +21,7 @@ func (c *Client) SnapshotDestroy(request *api.SnapshotRequest) error {
 	
 	// Create a request
 	req, err := http.NewRequest("Delete",
-		c.host+"/snapshot",
+		c.host+"/snapshot/destroy",
 		bytes.NewBuffer(buffer))
 	if err != nil {
 		return err
@@ -73,8 +73,8 @@ func (c *Client) SnapshotRestore(id string, request *api.SnapshotRequest) error 
 	}
 	
 	// Create a request
-	req, err := http.NewRequest("POST",
-		c.host+"/volumes/"+id+"/block-restriction",
+	req, err := http.NewRequest("PUT",
+		c.host+"/snapshot/restore",
 		bytes.NewBuffer(buffer))
 	if err != nil {
 		return err
