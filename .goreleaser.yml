@@ -22,7 +22,7 @@ dockers:
     # Name of the built binary that should be used.
     binary: heketi
     # Docker image name.
-    image: g0194776/heketi
+    image: antmoveh/heketi
     # Path to the Dockerfile (from the project root).
     dockerfile: extras/docker/fromsource/Dockerfile
     # Path to the Dockerfile (from the project root).

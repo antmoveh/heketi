@@ -19,7 +19,7 @@ RUN mkdir $BUILD_HOME $GOPATH && \
     dnf -y clean all && \
     mkdir -p $GOPATH/src/github.com/heketi && \
     cd $GOPATH/src/github.com/heketi && \
-    git clone -b $HEKETI_BRANCH https://github.com/g0194776/heketi.git && \
+    git clone -b $HEKETI_BRANCH https://github.com/antmoveh/heketi.git && \
     cd $GOPATH/src/github.com/heketi/heketi && \
     make server client && \
     cp heketi /usr/bin/heketi && \
