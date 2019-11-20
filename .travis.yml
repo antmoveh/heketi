@@ -9,7 +9,7 @@ env:
 
 
 before_install:
-  - docker build -t antmoveh/heketi -f extras/docker/fromsource/Dockerfile
+  - docker build -t antmoveh/heketi -f extras/docker/fromsource/Dockerfile .
 
 
 # needed for the docker pipe
