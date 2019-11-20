@@ -2,34 +2,15 @@ dist: xenial
 language: go
 go: '1.11.x'
 
-addons:
-  apt:
-    packages:
-      # needed for the nfpm pipe:
-      - rpm
-      # needed for the snap pipe:
-      - snapd
 
 env:
   # needed for the snap pipe:
   - PATH=/snap/bin:$PATH
 
-git:
-  depth: 9999999
-
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq python python-pip
-  - sudo pip install tox nose
+  - docker build -t antmoveh/heketi -f extras/docker/fromsource/Dockerfile
 
-install:
-  - bash .travis-fork-fix
-  - go get github.com/mattn/goveralls
-  - go get github.com/wadey/gocovmerge
-  - curl https://glide.sh/get | sh
-  # needed for the snap pipe:
-  - sudo snap install snapcraft --classic
 
 # needed for the docker pipe
 services:
@@ -38,20 +19,5 @@ services:
 after_success:
   # docker login is required if you want to push docker images.
   # DOCKER_PASSWORD should be a secret in your .travis.yml configuration.
-  - test -n "$TRAVIS_TAG" && docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  # snapcraft login is required if you want to push snapcraft packages to the
-  # store.
-  # You'll need to run `snapcraft export-login snap.login` and
-  # `travis encrypt-file snap.login --add` to add the key to the travis
-  # environment.
-  - test -n "$TRAVIS_TAG" && snapcraft login --with snap.login
-
-# calls goreleaser
-deploy:
-  - provider: script
-    skip_cleanup: true
-    github_token: $GITHUB_TOKEN
-    script: curl -sL https://git.io/goreleaser | bash
-    on:
-      tags: true
-      condition: $TRAVIS_OS_NAME = linux
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - docker push antmoveh/heketi .
