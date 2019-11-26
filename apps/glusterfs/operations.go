@@ -1261,7 +1261,7 @@ func (vc *SnapshotRestoreOperation) Build() error {
 }
 
 func (vc *SnapshotRestoreOperation) Exec(executor executors.Executor) error {
-	err := executor.SnapshotRestore(vc.host, vc.snapshotId)
+	err := executor.SnapshotRestore(vc.host, vc.snapshotId, vc.volumeId)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package glusterfs
 
 import (
+	"fmt"
 	"net/http"
 	
 	"github.com/boltdb/bolt"
@@ -98,8 +99,8 @@ func (a *App) SnapshotRestore(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	
-	op := NewSnapshotRestoreOperation(a.db, msg.SnapshotId, sshHost, msg.VolumeId)
+	volumeId := fmt.Sprintf("vol_%s", msg.VolumeId)
+	op := NewSnapshotRestoreOperation(a.db, msg.SnapshotId, sshHost, volumeId)
 	if err := AsyncHttpOperation(a, w, r, op); err != nil {
 		OperationHttpErrorf(w, err,
 			"Failed restore snapshot %v: %v", msg.SnapshotId, err)
@@ -144,8 +145,8 @@ func (a *App) SnapshotCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	
-	op := NewSnapshotCreateOperation(a.db, msg.SnapshotId, sshHost, msg.VolumeId)
+	volumeId := fmt.Sprintf("vol_%s", msg.VolumeId)
+	op := NewSnapshotCreateOperation(a.db, msg.SnapshotId, sshHost, volumeId)
 	if err := AsyncHttpOperation(a, w, r, op); err != nil {
 		OperationHttpErrorf(w, err,
 			"Failed create snapshot %v: %v", msg.SnapshotId, err)
