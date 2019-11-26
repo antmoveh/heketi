@@ -425,3 +425,38 @@ func (s *CmdExecutor) HealInfo(host string, volume string) (*executors.HealInfo,
 	logger.Debug("%+v\n", healInfo)
 	return &healInfo.HealInfo, nil
 }
+
+func (s *CmdExecutor) SnapshotInfo(host, snapshotId string) (*executors.Snapshot, error) {
+	
+	// Structure used to unmarshal XML from snapshot gluster cli
+	type CliOutput struct {
+		OpRet    int    `xml:"opRet"`
+		OpErrno  int    `xml:"opErrno"`
+		OpErrStr string `xml:"opErrstr"`
+		SnapList struct {
+			Count int `xml:"count"`
+		} `xml:"snapList"`
+	}
+	
+	commands := []string{
+		fmt.Sprintf("gluster --mode=script snapshot info %v --xml", snapshotId),
+	}
+	
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get snapshot information %v: %v", snapshotId, err)
+	}
+	
+	var snapInfo CliOutput
+	err = xml.Unmarshal([]byte(output[0]), &snapInfo)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to determine snapshot information %v: %v", snapshotId, err)
+	}
+	
+	if strings.Contains(snapInfo.OpErrStr, "does not exist") &&
+		strings.Contains(snapInfo.OpErrStr, snapshotId) {
+		return nil, &executors.VolumeDoesNotExistErr{Name: snapshotId}
+	}
+	
+	return &executors.Snapshot{}, nil
+}

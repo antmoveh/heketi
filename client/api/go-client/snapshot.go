@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-
+	
 	"github.com/heketi/heketi/pkg/glusterfs/api"
 	"github.com/heketi/heketi/pkg/utils"
 )
@@ -166,4 +166,39 @@ func (c *Client) SnapshotCreate(request *api.SnapshotRequest) error {
 	// }
 	
 	return nil
+}
+
+func (c *Client) SnapshotInfo(request *api.SnapshotRequest) (*api.SnapshotInfoResponse, error) {
+	
+	// Create a request
+	req, err := http.NewRequest("GET",
+		c.host+"/snapshot/info/"+request.VolumeId+"/"+request.SnapshotId, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Send request
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+	
+	// Read JSON response
+	var snap api.SnapshotInfoResponse
+	err = utils.GetJsonFromResponse(r, &snap)
+	if err != nil {
+		return nil, err
+	}
+	
+	return &snap, nil
 }

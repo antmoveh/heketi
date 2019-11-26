@@ -647,4 +647,8 @@ func (as AdminStatus) Validate() error {
 type SnapshotRequest struct {
 	VolumeId string `json:"volume_id"`
 	SnapshotId string `json:"snapshot_id"`
-} 
+}
+
+type SnapshotInfoResponse struct {
+	name string
+}

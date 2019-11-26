@@ -583,6 +583,11 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "POST",
 			Pattern:     "/snapshot/create",
 			HandlerFunc: a.SnapshotCreate},
+		rest.Route{
+			Name:        "SnapshotInfo",
+			Method:      "GET",
+			Pattern:     "/snapshot/info/{volume_id:[A-Fa-f0-9]+}/{snapshot_id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.SnapshotInfo},
 	}
 
 	// Register all routes from the App

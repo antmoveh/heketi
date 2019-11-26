@@ -1,7 +1,9 @@
 package glusterfs
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	
 	"github.com/boltdb/bolt"
@@ -151,5 +153,46 @@ func (a *App) SnapshotCreate(w http.ResponseWriter, r *http.Request) {
 		OperationHttpErrorf(w, err,
 			"Failed create snapshot %v: %v", msg.SnapshotId, err)
 		return
+	}
+}
+
+func (a *App) SnapshotInfo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	volumeId := vars["volume_id"]
+	snapshotId := vars["snapshot_id"]
+	
+	sshHost := ""
+	var info *api.VolumeInfoResponse
+	err := a.db.View(func(tx *bolt.Tx) error {
+		entry, err := NewVolumeEntryFromId(tx, volumeId)
+		if err == ErrNotFound || !entry.Visible() {
+			// treat an invisible entry like it doesn't exist
+			http.Error(w, "Id not found", http.StatusNotFound)
+			return ErrNotFound
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		
+		info, err = entry.NewInfoResponse(tx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		if sshHost == "" {
+			sshHost = info.Mount.GlusterFS.Hosts[0]
+		}
+		
+		return nil
+	})
+	
+	if err != nil {
+		return
+	}
+	snap, err := a.executor.SnapshotInfo(sshHost, snapshotId)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(snap); err != nil {
+		panic(err)
 	}
 }

@@ -9,7 +9,9 @@
 
 package executors
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+)
 
 type Executor interface {
 	GlusterdCheck(host string) error
@@ -37,6 +39,7 @@ type Executor interface {
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
 	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
 	SnapshotRestore(host string, snapshot string, volumeId string) error
+	SnapshotInfo(host, snapshotId string) (*Snapshot, error)
 }
 
 // Enumerate durability types

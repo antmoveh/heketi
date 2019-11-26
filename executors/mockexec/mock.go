@@ -39,6 +39,7 @@ type MockExecutor struct {
 	MockBlockVolumeCreate        func(host string, blockVolume *executors.BlockVolumeRequest) (*executors.BlockVolumeInfo, error)
 	MockBlockVolumeDestroy       func(host string, blockHostingVolumeName string, blockVolumeName string) error
 	MockSnapshotRestore          func(host string, snapshotId string, volumeId string) error
+	MockSnapshotInfo             func(host string, snapshotId string) (*executors.Snapshot, error)
 }
 
 func NewMockExecutor() (*MockExecutor, error) {
@@ -297,4 +298,8 @@ func (m *MockExecutor) BlockVolumeDestroy(host string, blockHostingVolumeName st
 
 func (m *MockExecutor) SnapshotRestore(host string, snapshotId string, volumeId string) error {
 	return m.MockSnapshotRestore(host, snapshotId, volumeId)
+}
+
+func (m *MockExecutor) SnapshotInfo(host string, snapshotId string) (*executors.Snapshot, error) {
+	return m.MockSnapshotInfo(host, snapshotId)
 }
