@@ -578,6 +578,11 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Pattern:     "/snapshot/restore",
 			HandlerFunc: a.SnapshotRestore,
 		},
+		rest.Route{
+			Name:        "SnapshotCreate",
+			Method:      "POST",
+			Pattern:     "/snapshot/create",
+			HandlerFunc: a.SnapshotCreate},
 	}
 
 	// Register all routes from the App

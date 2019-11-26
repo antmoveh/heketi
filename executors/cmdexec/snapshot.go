@@ -174,9 +174,10 @@ func (s *CmdExecutor) SnapshotDestroy(host string, snapshot string) error {
 	return nil
 }
 
-func (s *CmdExecutor) SnapshotRestore(host string, snapshot string) error {
+func (s *CmdExecutor) SnapshotRestore(host string, snapshot string, volumeId string) error {
 	godbc.Require(host != "")
 	godbc.Require(snapshot != "")
+	godbc.Require(volumeId != "")
 	
 	type CliOutput struct {
 		OpRet      int                  `xml:"opRet"`
@@ -185,9 +186,12 @@ func (s *CmdExecutor) SnapshotRestore(host string, snapshot string) error {
 		SnapRestore executors.SnapRestore `xml:"snapRestore"`
 	}
 	
-	command := []string{
-		fmt.Sprintf("gluster --mode=script --xml snapshot restore %v", snapshot),
+	command := []string {
+		fmt.Sprintf("gluster --mode=script --xml volume stop %v", volumeId),
 	}
+	command = append(command, fmt.Sprintf("gluster --mode=script --xml snapshot restore %v", snapshot))
+	
+	command = append(command, fmt.Sprintf("gluster --mode=script --xml volume start %v", volumeId))
 	
 	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
 	if err != nil {

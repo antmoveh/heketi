@@ -36,7 +36,7 @@ type Executor interface {
 	SetLogLevel(level string)
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
 	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
-	SnapshotRestore(host string, snapshot string) error
+	SnapshotRestore(host string, snapshot string, volumeId string) error
 }
 
 // Enumerate durability types
