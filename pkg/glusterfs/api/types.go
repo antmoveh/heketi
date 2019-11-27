@@ -651,7 +651,7 @@ type SnapshotRequest struct {
 
 type SnapshotInfoResponse struct {
 	Name string `json:"name"`
-	Uuid string `json:"uuid"`
+	UUID string `json:"uuid"`
 	CreateTime string `json:"createTime"`
 	VolCount int `json:"volCount"`
 	Error string `json:"error"`

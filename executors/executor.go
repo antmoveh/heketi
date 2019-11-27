@@ -309,7 +309,7 @@ type Snapshots struct {
 type SnapshotDetail struct {
 	XMLName xml.Name `xml:"snapshot"`
 	Name string `xml:"name"`
-	Uuid string `json:"uuid"`
+	UUID string `xml:"uuid"`
 	CreateTime string `xml:"createTime"`
 	VolCount int `xml:"volCount"`
 	Error string `xml:"error"`
