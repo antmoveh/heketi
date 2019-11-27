@@ -149,7 +149,6 @@ func (s *CmdExecutor) SnapshotDestroy(host string, snapshot string) error {
 		OpRet      int                  `xml:"opRet"`
 		OpErrno    int                  `xml:"opErrno"`
 		OpErrStr   string               `xml:"opErrstr"`
-		SnapDelete executors.SnapDelete `xml:"snapDelete"`
 	}
 
 	command := []string{
@@ -183,17 +182,21 @@ func (s *CmdExecutor) SnapshotRestore(host string, snapshot string, volumeId str
 		OpRet      int                  `xml:"opRet"`
 		OpErrno    int                  `xml:"opErrno"`
 		OpErrStr   string               `xml:"opErrstr"`
-		SnapRestore executors.SnapRestore `xml:"snapRestore"`
 	}
 	
+	err := s.VolumeStop(host, snapshot, volumeId)
+	if err != nil {
+		return err
+	}
 	command := []string {
-		fmt.Sprintf("gluster --mode=script --xml volume stop %v", volumeId),
+		fmt.Sprintf("gluster --mode=script --xml snapshot restore %v", snapshot),
 	}
-	command = append(command, fmt.Sprintf("gluster --mode=script --xml snapshot restore %v", snapshot))
-	
-	command = append(command, fmt.Sprintf("gluster --mode=script --xml volume start %v", volumeId))
 	
 	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+	err1 := s.VolumeStart(host, snapshot, volumeId)
+	if err1 != nil {
+		return err1
+	}
 	if err != nil {
 		return fmt.Errorf("Unable to restore snapshot %v: %v", snapshot, err)
 	}
@@ -206,6 +209,70 @@ func (s *CmdExecutor) SnapshotRestore(host string, snapshot string, volumeId str
 	logger.Debug("%+v\n", snapRestore)
 	if snapRestore.OpRet != 0 {
 		return fmt.Errorf("Failed to restore snapshot %v: %v", snapshot, snapRestore.OpErrStr)
+	}
+	return nil
+}
+
+func (s *CmdExecutor) VolumeStop(host string, snapshot string, volumeId string) error {
+	godbc.Require(host != "")
+	godbc.Require(snapshot != "")
+	godbc.Require(volumeId != "")
+	
+	type CliOutput struct {
+		OpRet      int                  `xml:"opRet"`
+		OpErrno    int                  `xml:"opErrno"`
+		OpErrStr   string               `xml:"opErrstr"`
+	}
+	
+	command := []string {
+		fmt.Sprintf("gluster --mode=script --xml volume stop %v", volumeId),
+	}
+	
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+	if err != nil {
+		return fmt.Errorf("Unable to stop volume %v: %v", snapshot, err)
+	}
+	
+	var snapRestore CliOutput
+	err = xml.Unmarshal([]byte(output[0]), &snapRestore)
+	if err != nil {
+		return fmt.Errorf("Unable to parse output from stop volume %v: %v", snapshot, err)
+	}
+	logger.Debug("%+v\n", snapRestore)
+	if snapRestore.OpRet != 0 {
+		return fmt.Errorf("Failed to stop volume %v: %v", snapshot, snapRestore.OpErrStr)
+	}
+	return nil
+}
+
+func (s *CmdExecutor) VolumeStart(host string, snapshot string, volumeId string) error {
+	godbc.Require(host != "")
+	godbc.Require(snapshot != "")
+	godbc.Require(volumeId != "")
+	
+	type CliOutput struct {
+		OpRet      int                  `xml:"opRet"`
+		OpErrno    int                  `xml:"opErrno"`
+		OpErrStr   string               `xml:"opErrstr"`
+	}
+	
+	command := []string {
+		fmt.Sprintf("gluster --mode=script --xml volume start %v", volumeId),
+	}
+	
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+	if err != nil {
+		return fmt.Errorf("Unable to start volume %v: %v", snapshot, err)
+	}
+	
+	var snapRestore CliOutput
+	err = xml.Unmarshal([]byte(output[0]), &snapRestore)
+	if err != nil {
+		return fmt.Errorf("Unable to parse output from start volume %v: %v", snapshot, err)
+	}
+	logger.Debug("%+v\n", snapRestore)
+	if snapRestore.OpRet != 0 {
+		return fmt.Errorf("Failed to start volume %v: %v", snapshot, snapRestore.OpErrStr)
 	}
 	return nil
 }

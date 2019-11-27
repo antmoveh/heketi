@@ -39,7 +39,7 @@ type Executor interface {
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
 	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
 	SnapshotRestore(host string, snapshot string, volumeId string) error
-	SnapshotInfo(host, snapshotId string) (*Snapshot, error)
+	SnapshotInfo(host, snapshotId string) (*SnapshotDetail, error)
 }
 
 // Enumerate durability types
@@ -295,8 +295,22 @@ func (dne *VolumeDoesNotExistErr) Error() string {
 	return "Volume Does Not Exist: " + dne.Name
 }
 
-// 快照恢复
-type SnapRestore struct {
-	XMLName   xml.Name         `xml:"snapRestore"`
-	Snapshots []SnapshotStatus `xml:"snapshots"`
+type SnapshotInfo struct {
+	XMLName xml.Name `xml:"snapInfo"`
+	Count int `xml:"count"`
+	Snapshots Snapshots `xml:"snapshots"`
+}
+
+type Snapshots struct {
+	XMLName xml.Name `xml:"snapshots"`
+	SnapshotList []SnapshotDetail `xml:"snapshot"`
+}
+
+type SnapshotDetail struct {
+	XMLName xml.Name `xml:"snapshot"`
+	Name string `xml:"name"`
+	Uuid string `json:"uuid"`
+	CreateTime string `xml:"createTime"`
+	VolCount int `xml:"volCount"`
+	Error string `xml:"error"`
 }

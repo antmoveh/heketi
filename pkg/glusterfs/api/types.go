@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-
+	
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 )
@@ -650,5 +650,9 @@ type SnapshotRequest struct {
 }
 
 type SnapshotInfoResponse struct {
-	name string
+	Name string `json:"name"`
+	Uuid string `json:"uuid"`
+	CreateTime string `json:"createTime"`
+	VolCount int `json:"volCount"`
+	Error string `json:"error"`
 }

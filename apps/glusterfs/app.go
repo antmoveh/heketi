@@ -568,7 +568,7 @@ func (a *App) SetRoutes(router *mux.Router) error {
 		// Operations state on snapshot
 		rest.Route{
 			Name:        "SnapshotDestroy",
-			Method:      "Delete",
+			Method:      "DELETE",
 			Pattern:     "/snapshot/destroy",
 			HandlerFunc: a.SnapshotDestroy,
 		},
@@ -586,7 +586,7 @@ func (a *App) SetRoutes(router *mux.Router) error {
 		rest.Route{
 			Name:        "SnapshotInfo",
 			Method:      "GET",
-			Pattern:     "/snapshot/info/{volume_id:[A-Fa-f0-9]+}/{snapshot_id:[A-Fa-f0-9]+}",
+			Pattern:     "/snapshot/info/{volume_id:[A-Fa-f0-9]+}/{snapshot_id:[\\w]+}",
 			HandlerFunc: a.SnapshotInfo},
 	}
 

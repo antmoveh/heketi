@@ -426,16 +426,14 @@ func (s *CmdExecutor) HealInfo(host string, volume string) (*executors.HealInfo,
 	return &healInfo.HealInfo, nil
 }
 
-func (s *CmdExecutor) SnapshotInfo(host, snapshotId string) (*executors.Snapshot, error) {
+func (s *CmdExecutor) SnapshotInfo(host, snapshotId string) (*executors.SnapshotDetail, error) {
 	
 	// Structure used to unmarshal XML from snapshot gluster cli
 	type CliOutput struct {
 		OpRet    int    `xml:"opRet"`
 		OpErrno  int    `xml:"opErrno"`
 		OpErrStr string `xml:"opErrstr"`
-		SnapList struct {
-			Count int `xml:"count"`
-		} `xml:"snapList"`
+		SnapInfo executors.SnapshotInfo `xml:"snapInfo"`
 	}
 	
 	commands := []string{
@@ -453,10 +451,9 @@ func (s *CmdExecutor) SnapshotInfo(host, snapshotId string) (*executors.Snapshot
 		return nil, fmt.Errorf("Unable to determine snapshot information %v: %v", snapshotId, err)
 	}
 	
-	if strings.Contains(snapInfo.OpErrStr, "does not exist") &&
-		strings.Contains(snapInfo.OpErrStr, snapshotId) {
-		return nil, &executors.VolumeDoesNotExistErr{Name: snapshotId}
+	if snapInfo.OpRet != 0 {
+		return &executors.SnapshotDetail{Error:snapInfo.OpErrStr}, fmt.Errorf(snapInfo.OpErrStr)
 	}
 	
-	return &executors.Snapshot{}, nil
+	return &snapInfo.SnapInfo.Snapshots.SnapshotList[0], nil
 }
