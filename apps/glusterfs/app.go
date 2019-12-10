@@ -595,8 +595,8 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			HandlerFunc: a.VolumeInfoDetail},
 		rest.Route{
 			Name:        "BrickInfoDetail",
-			Method:      "GET",
-			Pattern:     "/brick/info/detail/{volume_id:[A-Fa-f0-9]+}/{brick_id:[\\w]+}",
+			Method:      "POST",
+			Pattern:     "/brick/info/detail",
 			HandlerFunc: a.BrickInfoDetail},
 	}
 

@@ -210,12 +210,20 @@ func (c *Client) VolumeInfoDetail(request *api.SnapshotRequest) (*executors.Volu
 
 func (c *Client) BrickInfoDetail(request *api.SnapshotRequest) (*executors.BrickDetailInfo, error) {
 	
-	// Create a request
-	req, err := http.NewRequest("GET",
-		c.host+"/snapshot/info/"+request.VolumeId+"/"+request.SnapshotId, nil)
+	// Marshal request to JSON
+	buffer, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
+	
+	// Create a request
+	req, err := http.NewRequest("POST",
+		c.host+"/brick/info/detail",
+		bytes.NewBuffer(buffer))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
 	
 	// Set token
 	err = c.setToken(req)

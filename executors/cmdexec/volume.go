@@ -276,6 +276,9 @@ func (s *CmdExecutor) VolumeInfo(host string, volume string) (*executors.Volume,
 	if err != nil {
 		return nil, fmt.Errorf("Unable to determine volume info of volume name: %v", volume)
 	}
+	if volumeInfo.OpRet != 0 {
+		return nil, fmt.Errorf("Failed to get volume info %v: %v", volume, volumeInfo.OpErrStr)
+	}
 	logger.Debug("%+v\n", volumeInfo)
 	return &volumeInfo.VolInfo.Volumes.VolumeList[0], nil
 }
@@ -305,6 +308,9 @@ func (s *CmdExecutor) BrickInfo(host string, volume, brick string) (*executors.B
 	err = xml.Unmarshal([]byte(output[0]), &cliOut)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to determine volume info of volume name: %v", volume)
+	}
+	if cliOut.OpRet != 0 {
+		return nil, fmt.Errorf("Failed to get brick info %v: %v", volume, cliOut.OpErrStr)
 	}
 	logger.Debug("%+v\n", cliOut)
 	return &cliOut.VolInfo, nil
