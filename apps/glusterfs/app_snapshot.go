@@ -200,3 +200,95 @@ func (a *App) SnapshotInfo(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }
+
+
+func (a *App) VolumeInfoDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	volumeId := vars["volume_id"]
+	
+	sshHost := ""
+	var info *api.VolumeInfoResponse
+	err := a.db.View(func(tx *bolt.Tx) error {
+		entry, err := NewVolumeEntryFromId(tx, volumeId)
+		if err == ErrNotFound || !entry.Visible() {
+			// treat an invisible entry like it doesn't exist
+			http.Error(w, "Id not found", http.StatusNotFound)
+			return ErrNotFound
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		
+		info, err = entry.NewInfoResponse(tx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		if sshHost == "" {
+			sshHost = info.Mount.GlusterFS.Hosts[0]
+		}
+		
+		return nil
+	})
+	
+	if err != nil {
+		return
+	}
+	
+	volumeInfo, err := a.executor.VolumeInfo(sshHost, volumeId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(volumeInfo); err != nil {
+		panic(err)
+	}
+}
+
+func (a *App) BrickInfoDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	volumeId := vars["volume_id"]
+	brickId := vars["brick_id"]
+	
+	sshHost := ""
+	var info *api.VolumeInfoResponse
+	err := a.db.View(func(tx *bolt.Tx) error {
+		entry, err := NewVolumeEntryFromId(tx, volumeId)
+		if err == ErrNotFound || !entry.Visible() {
+			// treat an invisible entry like it doesn't exist
+			http.Error(w, "Id not found", http.StatusNotFound)
+			return ErrNotFound
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		
+		info, err = entry.NewInfoResponse(tx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return err
+		}
+		if sshHost == "" {
+			sshHost = info.Mount.GlusterFS.Hosts[0]
+		}
+		
+		return nil
+	})
+	
+	if err != nil {
+		return
+	}
+	volume := fmt.Sprintf("vol_%s", volumeId)
+	brick, err := a.executor.BrickInfo(sshHost, volume, brickId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(brick); err != nil {
+		panic(err)
+	}
+}

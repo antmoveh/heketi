@@ -588,6 +588,16 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "GET",
 			Pattern:     "/snapshot/info/{volume_id:[A-Fa-f0-9]+}/{snapshot_id:[\\w]+}",
 			HandlerFunc: a.SnapshotInfo},
+		rest.Route{
+			Name:        "VolumeInfoDetail",
+			Method:      "GET",
+			Pattern:     "/volume/info/detail/{volume_id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.VolumeInfoDetail},
+		rest.Route{
+			Name:        "BrickInfoDetail",
+			Method:      "GET",
+			Pattern:     "/brick/info/detail/{volume_id:[A-Fa-f0-9]+}/{brick_id:[\\w]+}",
+			HandlerFunc: a.BrickInfoDetail},
 	}
 
 	// Register all routes from the App

@@ -4,6 +4,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/heketi/heketi/executors"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
 	"github.com/heketi/heketi/pkg/utils"
 	"net/http"
@@ -170,4 +171,74 @@ func (c *Client) SnapshotInfo(request *api.SnapshotRequest) (*api.SnapshotInfoRe
 	}
 	
 	return &snap, nil
+}
+
+func (c *Client) VolumeInfoDetail(request *api.SnapshotRequest) (*executors.Volume, error) {
+	
+	// Create a request
+	req, err := http.NewRequest("GET",
+		c.host+"/volume/info/detail/"+request.VolumeId, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Send request
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+	
+	// Read JSON response
+	var volume executors.Volume
+	err = utils.GetJsonFromResponse(r, &volume)
+	if err != nil {
+		return nil, err
+	}
+	
+	return &volume, nil
+}
+
+func (c *Client) BrickInfoDetail(request *api.SnapshotRequest) (*executors.BrickDetailInfo, error) {
+	
+	// Create a request
+	req, err := http.NewRequest("GET",
+		c.host+"/snapshot/info/"+request.VolumeId+"/"+request.SnapshotId, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Set token
+	err = c.setToken(req)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Send request
+	r, err := c.do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return nil, utils.GetErrorFromResponse(r)
+	}
+	
+	// Read JSON response
+	var brick executors.BrickDetailInfo
+	err = utils.GetJsonFromResponse(r, &brick)
+	if err != nil {
+		return nil, err
+	}
+	
+	return &brick, nil
 }
