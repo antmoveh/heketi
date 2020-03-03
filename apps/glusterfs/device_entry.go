@@ -281,6 +281,9 @@ func (d *DeviceEntry) NewInfoResponse(tx *bolt.Tx) (*api.DeviceInfoResponse, err
 	// Add each drive information
 	for _, id := range d.Bricks {
 		brick, err := NewBrickEntryFromId(tx, id)
+		if err == ErrNotFound {
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
