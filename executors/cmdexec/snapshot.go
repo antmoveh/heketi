@@ -12,7 +12,10 @@ package cmdexec
 import (
 	"encoding/xml"
 	"fmt"
-
+	"github.com/heketi/heketi/pkg/utils"
+	"strings"
+	"sync"
+	
 	"github.com/heketi/heketi/executors"
 	"github.com/lpabon/godbc"
 )
@@ -184,7 +187,12 @@ func (s *CmdExecutor) SnapshotRestore(host string, snapshot string, volumeId str
 		OpErrStr   string               `xml:"opErrstr"`
 	}
 	
-	err := s.VolumeStop(host, snapshot, volumeId)
+	volumeInfo, err := s.VolumeInfo(host, volumeId)
+	if err != nil {
+		return err
+	}
+	
+	err = s.VolumeStop(host, snapshot, volumeId)
 	if err != nil {
 		return err
 	}
@@ -209,6 +217,10 @@ func (s *CmdExecutor) SnapshotRestore(host string, snapshot string, volumeId str
 	logger.Debug("%+v\n", snapRestore)
 	if snapRestore.OpRet != 0 {
 		return fmt.Errorf("Failed to restore snapshot %v: %v", snapshot, snapRestore.OpErrStr)
+	}
+	err = s.RemoveSnapshotLvm(volumeInfo)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -273,6 +285,50 @@ func (s *CmdExecutor) VolumeStart(host string, snapshot string, volumeId string)
 	logger.Debug("%+v\n", snapRestore)
 	if snapRestore.OpRet != 0 {
 		return fmt.Errorf("Failed to start volume %v: %v", snapshot, snapRestore.OpErrStr)
+	}
+	return nil
+}
+
+func (s *CmdExecutor) RemoveSnapshotLvm(volume *executors.Volume) error {
+	if volume == nil {
+		return nil
+	}
+	
+	sg := utils.NewStatusGroup()
+	// the mutex is used to prevent "fatal error: concurrent map writes"
+	mutex := sync.Mutex{}
+	
+	// Create a goroutine for each brick
+	for _, brick := range volume.Bricks.BrickList {
+		if !strings.Contains(brick.Name, "/run/gluster/snaps"){
+			continue
+		}
+		brickList := strings.Split(brick.Name, ":")
+		host := brickList[0]
+		snapList := strings.Split(brickList[1], "/")
+		snapId := snapList[4]
+		key := "k"+snapId[0:3]
+		sg.Add(1)
+		go func(host, path string, m *sync.Mutex) {
+			defer sg.Done()
+			command := []string {
+				fmt.Sprintf("%s=`mount |grep %s` && umount ${%s%%on*} && yes | lvremove ${%s%%on*} && unset %s", key, snapId, key, key, key),
+			}
+			
+			_, err := s.RemoteExecutor.RemoteCommandExecute(host, command, 10)
+			if err != nil {
+				logger.LogError("error destroy snapshot brick %s", err.Error())
+			}
+			
+			sg.Err(err)
+		}(host, snapId, &mutex)
+	}
+	
+	// Wait here until all goroutines have returned.  If
+	// any of errored, it would be caught here
+	err := sg.Result()
+	if err != nil {
+		logger.Err(err)
 	}
 	return nil
 }

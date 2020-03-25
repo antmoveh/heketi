@@ -133,14 +133,18 @@ func (s *CmdExecutor) VolumeExpand(host string,
 func (s *CmdExecutor) VolumeDestroy(host string, volume string) error {
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
-
+	
+	volumeInfo, err := s.VolumeInfo(host, volume)
+	if err != nil {
+		return err
+	}
+	
 	// First stop the volume, then delete it
-
 	commands := []string{
 		fmt.Sprintf("gluster --mode=script volume stop %v force", volume),
 	}
 
-	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
+	_, err = s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
 	if err != nil {
 		logger.LogError("Unable to stop volume %v: %v", volume, err)
 	}
@@ -152,6 +156,11 @@ func (s *CmdExecutor) VolumeDestroy(host string, volume string) error {
 	_, err = s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
 	if err != nil {
 		return logger.Err(fmt.Errorf("Unable to delete volume %v: %v", volume, err))
+	}
+	
+	err = s.RemoveSnapshotLvm(volumeInfo)
+	if err != nil {
+		return err
 	}
 
 	return nil
